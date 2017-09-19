@@ -4,22 +4,20 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using RiotSharp.Misc;
+using System;
 
 namespace RiotSharp.Http
 {
     /// <summary>
     /// A requester with a rate limiter
     /// </summary>
-    internal class RateLimitedRequester : RequesterBase, IRateLimitedRequester
+    public class RateLimitedRequester : RequesterBase, IRateLimitedRequester
     {
-        public int RateLimitPer10S { get; set; }
-        public int RateLimitPer10M { get; set; }
+        public readonly IDictionary<TimeSpan, int> RateLimits;
 
-        internal RateLimitedRequester(string apiKey, int rateLimitPer10s, int rateLimitPer10m)
+        public RateLimitedRequester(string apiKey, IDictionary<TimeSpan, int> rateLimits) : base(apiKey)
         {
-            ApiKey = apiKey;
-            RateLimitPer10S = rateLimitPer10s;
-            RateLimitPer10M = rateLimitPer10m;
+            RateLimits = rateLimits;
         }
 
         private readonly Dictionary<Region, RateLimiter> rateLimiters = new Dictionary<Region, RateLimiter>();
@@ -29,7 +27,8 @@ namespace RiotSharp.Http
         public string CreateGetRequest(string relativeUrl, Region region, List<string> addedArguments = null,
             bool useHttps = true)
         {
-            rootDomain = region + ".api.pvp.net";
+            rootDomain = GetPlatformDomain(region);
+
             var request = PrepareRequest(relativeUrl, addedArguments, useHttps, HttpMethod.Get);
 
             GetRateLimiter(region).HandleRateLimit();
@@ -37,13 +36,14 @@ namespace RiotSharp.Http
             using (var response = Get(request))
             {
                 return GetResponseContent(response);
-            }              
+            }
         }
 
-        public async Task<string> CreateGetRequestAsync(string relativeUrl, Region region,
-            List<string> addedArguments = null, bool useHttps = true)
+        public async Task<string> CreateGetRequestAsync(string relativeUrl, Region region, List<string> addedArguments = null, 
+            bool useHttps = true)
         {
-            rootDomain = region + ".api.pvp.net";
+            rootDomain = GetPlatformDomain(region);
+
             var request = PrepareRequest(relativeUrl, addedArguments, useHttps, HttpMethod.Get);
             
             await GetRateLimiter(region).HandleRateLimitAsync();
@@ -57,7 +57,8 @@ namespace RiotSharp.Http
         public string CreatePostRequest(string relativeUrl, Region region, string body,
             List<string> addedArguments = null, bool useHttps = true)
         {
-            rootDomain = region + ".api.pvp.net";
+            rootDomain = GetPlatformDomain(region);
+
             var request = PrepareRequest(relativeUrl, addedArguments, useHttps, HttpMethod.Post);
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
@@ -72,7 +73,8 @@ namespace RiotSharp.Http
         public async Task<string> CreatePostRequestAsync(string relativeUrl, Region region, string body,
             List<string> addedArguments = null, bool useHttps = true)
         {
-            rootDomain = region + ".api.pvp.net";
+            rootDomain = GetPlatformDomain(region);
+
             var request = PrepareRequest(relativeUrl, addedArguments, useHttps, HttpMethod.Post);
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
@@ -87,7 +89,8 @@ namespace RiotSharp.Http
         public bool CreatePutRequest(string relativeUrl, Region region, string body, List<string> addedArguments = null,
             bool useHttps = true)
         {
-            rootDomain = region + ".api.pvp.net";
+            rootDomain = GetPlatformDomain(region);
+
             var request = PrepareRequest(relativeUrl, addedArguments, useHttps, HttpMethod.Put);
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
@@ -102,7 +105,8 @@ namespace RiotSharp.Http
         public async Task<bool> CreatePutRequestAsync(string relativeUrl, Region region, string body,
             List<string> addedArguments = null, bool useHttps = true)
         {
-            rootDomain = region + ".api.pvp.net";
+            rootDomain = GetPlatformDomain(region);
+
             var request = PrepareRequest(relativeUrl, addedArguments, useHttps, HttpMethod.Put);
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
@@ -124,7 +128,7 @@ namespace RiotSharp.Http
         private RateLimiter GetRateLimiter(Region region)
         {
             if (!rateLimiters.ContainsKey(region))
-                rateLimiters[region] = new RateLimiter(RateLimitPer10S, RateLimitPer10M);
+                rateLimiters[region] = new RateLimiter(RateLimits);
             return rateLimiters[region]; 
         }
     }

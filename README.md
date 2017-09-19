@@ -5,6 +5,8 @@
 
 C# Wrapper for the [Riot Games API](https://developer.riotgames.com/)
 
+Documentation can be found [here](http://benfradet.github.io/RiotSharp/api/index.html).
+
 ## Features
 
 - No need to worry about the 10 requests per 10s or the 500 requests per 10m rate limits, they are already implemented in the wrapper
@@ -32,7 +34,7 @@ In order to use the api you need an api key which you can get [here](https://dev
 
 Entry point to the api if you do not own a production API key:
 ```c#
-var api = RiotApi.GetInstance("YOUR_API_KEY");
+var api = RiotApi.GetDevelopmentInstance("YOUR_API_KEY");
 ```
 
 If you do own a production API key you can specify your own rate limits:
@@ -45,7 +47,7 @@ To get a summoner:
 ```c#
 try
 {
-  var summoner = api.GetSummoner(Region.euw, "StopOFlop");
+  var summoner = api.GetSummonerByName(Region.euw, "StopOFlop");
 }
 catch (RiotSharpException ex)
 {
@@ -53,26 +55,7 @@ catch (RiotSharpException ex)
 }
 ```
 
-To get the stats in ranked for a specific champion for this summoner:
-```c#
-try
-{
-  var varusRanked = summoner.GetStatsRanked(Season.Season3)
-    .Where((s) => s.Name != null && s.Name.Equals("Varus"))
-    .FirstOrDefault();
-}
-catch (RiotSharpException ex)
-{
-  // Handle the exception however you want.
-}
-
-foreach (var stat in varusRanked.Stats)
-{
-  Console.WriteLine(stat.Name + "  " + stat.Value);
-}
-```
-
-You can find a list of all the available operations in [IRiotApi](RiotSharp/IRiotApi.cs).
+You can find a list of all the available operations in [RiotApi in the documentation](http://benfradet.github.io/RiotSharp/api/RiotSharp.RiotApi.html).
 
 ### Tournament API
 
@@ -119,7 +102,7 @@ tournament.CreateTournamentCode(teamSize, allowedSummonerIds,
 
 or, alternatively, if you do not wish to create a separate Tournament object, you can call the `CreateTournamentCode` method directly from the API as shown previously.
 
-You can find a list of all the available operations in [ITournamentRiotApi](RiotSharp/ITournamentRiotApi.cs).
+You can find a list of all the available operations in [TournamentRiotApi in the documentation](http://benfradet.github.io/RiotSharp/api/RiotSharp.TournamentRiotApi.html).
 
 ### Static API
 
@@ -141,7 +124,29 @@ foreach (var champion in champions)
 }
 ```
 
-You can find a list of all the available operations in [IStaticRiotApi](RiotSharp/IStaticRiotApi.cs).
+Additionally, you can use the regular api and static api to, for example, retrieve champion masteries for the summoner:
+```c#
+try
+{
+    var championMasteries =  api.GetChampionMasteries(RiotSharp.Misc.Region.na, summoner.Id);
+}
+catch (RiotSharpException ex)
+{
+  // Handle the exception however you want.
+}
+
+foreach (var championMastery in championMasteries)
+{
+    var id = championMastery.ChampionId;
+    var name = staticApi.GetChampion(RiotSharp.Misc.Region.euw, id).Name;
+    var level = championMastery.ChampionLevel;
+    var points = championMastery.ChampionPoints;
+
+    Console.WriteLine($" •  **Level {level} {name}** {points} Points");
+}
+```
+
+You can find a list of all the available operations in [StaticRiotApi in the Documentation](http://benfradet.github.io/RiotSharp/api/RiotSharp.StaticRiotApi.html).
 
 ### Status API
 
@@ -160,7 +165,7 @@ foreach (var service in shardStatuses.Services)
 }
 ```
 
-You can find a list of all the available operations in [IStatusRiotApi](RiotSharp/IStatusRiotApi.cs).
+You can find a list of all the available operations in [StatusRiotApi in the documentation](http://benfradet.github.io/RiotSharp/api/RiotSharp.StatusRiotApi.html).
 
 
 For a full description check the [RiotSharpExample](RiotSharpExample) or [RiotSharpTest](RiotSharpTest) projects.

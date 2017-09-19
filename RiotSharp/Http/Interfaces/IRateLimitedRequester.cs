@@ -7,15 +7,6 @@ namespace RiotSharp.Http.Interfaces
     public interface IRateLimitedRequester
     {
         /// <summary>
-        /// The number of allowed calls per 10 seconds
-        /// </summary>
-        int RateLimitPer10S { get; set; }
-        /// <summary>
-        /// The number of allowed calls per 10 minutes
-        /// </summary>
-        int RateLimitPer10M { get; set; }
-
-        /// <summary>
         /// Create a get request and send it synchronously to the server.
         /// </summary>
         /// <param name="relativeUrl"></param>
@@ -42,8 +33,8 @@ namespace RiotSharp.Http.Interfaces
         /// Thrown if an Http error occurs. 
         /// Contains the Http error code and error message.
         /// </exception>
-        Task<string> CreateGetRequestAsync(string relativeUrl, Region region,
-            List<string> addedArguments = null, bool useHttps = true);
+        Task<string> CreateGetRequestAsync(string relativeUrl, Region region, List<string> addedArguments = null, 
+            bool useHttps = true);
 
         /// <summary>
         /// Create a post request and send it synchronously to the server.
